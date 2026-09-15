@@ -17,6 +17,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -154,6 +156,73 @@ class TaskServiceTest {
             assertThrows(TaskNotFoundException.class, () -> service.eliminar(999L));
             // never() + anyLong(): NO se borró nada. (Regla "todos matchers o ninguno": aquí anyLong()).
             verify(repository, never()).deleteById(anyLong());
+        }
+    }
+
+    @Nested
+    @DisplayName("vencidas")
+    class Vencidas {
+
+        @Test
+        void vencidas_filtraYOrdena() throws TaskValidationException {
+            LocalDate hoy = LocalDate.now();
+            Task tAntigua = new Task(1L, "Antigua", "desc", TaskStatus.IN_PROGRESS,
+                    Priority.MED, PROYECTO, 1L, hoy.minusDays(5));
+            Task tReciente = new Task(2L, "Reciente", "desc", TaskStatus.IN_PROGRESS,
+                    Priority.MED, PROYECTO, 1L, hoy.minusDays(1));
+            Task hecha = new Task(3L, "Hecha", "desc", TaskStatus.DONE,
+                    Priority.MED, PROYECTO, 1L, hoy.minusDays(2));
+            Task sinFecha = new Task(4L, "SinFecha", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, 1L, null);
+
+            // El repositorio devuelve una lista desordenada y con mezclas; el servicio debe filtrar y ordenar.
+            when(repository.findAll()).thenReturn(List.of(tReciente, sinFecha, hecha, tAntigua));
+
+            List<Task> resultado = service.vencidas();
+
+            assertEquals(2, resultado.size());
+            // Orden por dueDate asc: la más antigua (minusDays(5)) primero.
+            assertEquals(1L, resultado.get(0).getId());
+            assertEquals(2L, resultado.get(1).getId());
+        }
+    }
+
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void sinResponsable_filtraYOrdenaSegunSpec() throws TaskValidationException {
+            LocalDate hoy = LocalDate.now();
+            // Construir tareas en el orden que devuelve el repo (intencionalmente desordenado)
+            Task sinResp10 = new Task(10L, "SinResp10", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, hoy.plusDays(10));
+            Task conResp = new Task(11L, "ConResp", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, 5L, hoy.plusDays(5));
+            Task sinRespSinFecha = new Task(12L, "SinFecha", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, null);
+            Task sinResp2 = new Task(13L, "SinResp2", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, hoy.plusDays(2));
+
+            when(repository.findAll()).thenReturn(List.of(sinResp10, conResp, sinRespSinFecha, sinResp2));
+
+            List<Task> resultado = service.sinResponsable();
+
+            assertEquals(3, resultado.size());
+            // Orden esperado: la de 2 días, la de 10 días, la sin fecha
+            List<Long> ids = resultado.stream().map(Task::getId).toList();
+            assertEquals(List.of(13L, 10L, 12L), ids);
+        }
+
+        @Test
+        void sinResponsable_soloConResponsable_devuelveVacio() {
+            Task con1 = tarea(21L, "ConA", 5L);
+            Task con2 = tarea(22L, "ConB", 6L);
+            when(repository.findAll()).thenReturn(List.of(con1, con2));
+
+            List<Task> resultado = service.sinResponsable();
+
+            assertEquals(0, resultado.size());
         }
     }
 
