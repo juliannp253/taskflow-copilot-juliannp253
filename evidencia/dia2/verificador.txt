@@ -1,0 +1,6 @@
+MUTANTE: quitado .sorted(TaskOrders.POR_FECHA) de sinResponsable()
+
+[ERROR] Tests run: 10, Failures: 1, Errors: 0, Skipped: 0
+[INFO] BUILD FAILURE
+RESTAURADO: TaskService.java quedó exactamente como estaba.
+
