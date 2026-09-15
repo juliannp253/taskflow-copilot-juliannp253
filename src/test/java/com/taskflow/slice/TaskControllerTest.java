@@ -21,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -177,6 +178,19 @@ class TaskControllerTest {
                 .andExpect(jsonPath("$.status").value(404));
     }
 
+    @Test
+    void getOverdue_retorna200YListaOrdenada() throws Exception {
+        LocalDate hoy = LocalDate.now();
+        Task t1 = tareaConFecha(7L, "Corregir bug de fechas", TaskStatus.IN_PROGRESS, 1L, hoy.minusDays(2));
+        Task t2 = tareaConFecha(8L, "Otra vencida", TaskStatus.IN_PROGRESS, 1L, hoy.minusDays(1));
+        when(taskService.vencidas()).thenReturn(List.of(t1, t2));
+
+        mockMvc.perform(get("/tasks/overdue"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].title").value("Corregir bug de fechas"));
+    }
+
     // ---- helpers de datos (reales, no mocks) ----
 
     private Task tarea(Long id, String title, TaskStatus status) {
@@ -190,4 +204,13 @@ class TaskControllerTest {
             throw new IllegalStateException("dato de prueba inválido", e);
         }
     }
+
+    private Task tareaConFecha(Long id, String title, TaskStatus status, Long projectId, LocalDate dueDate) {
+        try {
+            return new Task(id, title, "desc", status, Priority.MED, projectId, 1L, dueDate);
+        } catch (TaskValidationException e) {
+            throw new IllegalStateException("dato de prueba inválido", e);
+        }
+    }
 }
+
