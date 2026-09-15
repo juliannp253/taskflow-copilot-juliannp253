@@ -187,6 +187,45 @@ class TaskServiceTest {
         }
     }
 
+    @Nested
+    @DisplayName("SinResponsable")
+    class SinResponsable {
+
+        @Test
+        void sinResponsable_filtraYOrdenaSegunSpec() throws TaskValidationException {
+            LocalDate hoy = LocalDate.now();
+            // Construir tareas en el orden que devuelve el repo (intencionalmente desordenado)
+            Task sinResp10 = new Task(10L, "SinResp10", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, hoy.plusDays(10));
+            Task conResp = new Task(11L, "ConResp", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, 5L, hoy.plusDays(5));
+            Task sinRespSinFecha = new Task(12L, "SinFecha", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, null);
+            Task sinResp2 = new Task(13L, "SinResp2", "desc", TaskStatus.TODO,
+                    Priority.MED, PROYECTO, null, hoy.plusDays(2));
+
+            when(repository.findAll()).thenReturn(List.of(sinResp10, conResp, sinRespSinFecha, sinResp2));
+
+            List<Task> resultado = service.sinResponsable();
+
+            assertEquals(3, resultado.size());
+            // Orden esperado: la de 2 días, la de 10 días, la sin fecha
+            List<Long> ids = resultado.stream().map(Task::getId).toList();
+            assertEquals(List.of(13L, 10L, 12L), ids);
+        }
+
+        @Test
+        void sinResponsable_soloConResponsable_devuelveVacio() {
+            Task con1 = tarea(21L, "ConA", 5L);
+            Task con2 = tarea(22L, "ConB", 6L);
+            when(repository.findAll()).thenReturn(List.of(con1, con2));
+
+            List<Task> resultado = service.sinResponsable();
+
+            assertEquals(0, resultado.size());
+        }
+    }
+
     /** Fabrica una Task de rehidratación REAL (dato, no mock). assigneeId null = sin responsable. */
     private Task tarea(Long id, String title, Long assigneeId) {
         try {
