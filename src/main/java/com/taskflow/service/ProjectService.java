@@ -9,6 +9,7 @@ import com.taskflow.repository.ProjectRepository;
 import com.taskflow.repository.TaskRepository;
 import com.taskflow.repository.UserRepository;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.taskflow.mapper.ProjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -60,6 +61,26 @@ public class ProjectService {
      */
     public List<Task> tareasDe(Long projectId) {
         return taskRepository.findByProjectId(projectId);
+    }
+
+    /**
+     * Resumen de un proyecto: cuenta tareas por estado y cuántas están vencidas.
+     * Reutiliza Task.estaVencida() para el cálculo de 'overdue'.
+     */
+    public com.taskflow.dto.ProjectSummaryResponse resumen(Project proyecto) {
+        List<Task> tareas = taskRepository.findByProjectId(proyecto.getId());
+        long total = tareas.size();
+        java.util.Map<String, Long> byStatus = new java.util.HashMap<>();
+        // inicializar las tres claves a cero
+        for (com.taskflow.model.TaskStatus s : com.taskflow.model.TaskStatus.values()) {
+            byStatus.put(s.name(), 0L);
+        }
+        for (Task t : tareas) {
+            String key = t.getStatus().name();
+            byStatus.put(key, byStatus.getOrDefault(key, 0L) + 1);
+        }
+        long overdue = tareas.stream().filter(Task::estaVencida).count();
+        return ProjectMapper.aSummary(proyecto, total, byStatus, overdue);
     }
 
     /**
