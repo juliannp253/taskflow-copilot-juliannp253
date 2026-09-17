@@ -13,6 +13,13 @@ import com.taskflow.model.Project;
  */
 public final class ProjectMapper {
 
+    /** Map a project to ProjectSummaryResponse. */
+    public static com.taskflow.dto.ProjectSummaryResponse aSummary(Project p, long totalTasks,
+                                                                     java.util.Map<String, Long> byStatus,
+                                                                     long overdue) {
+        return new com.taskflow.dto.ProjectSummaryResponse(p.getId(), p.getName(), totalTasks, byStatus, overdue);
+    }
+
     private ProjectMapper() {
         // no instanciable
     }
