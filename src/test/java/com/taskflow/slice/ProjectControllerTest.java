@@ -132,6 +132,35 @@ class ProjectControllerTest {
                 .andExpect(jsonPath("$.errors[0]").value(containsString("name")));
     }
 
+    @Test
+    void getProjectSummary_retorna200YResumen() throws Exception {
+        Project proyecto = new Project(2L, "App Móvil", "d", 2L, null);
+        when(projectService.buscarPorId(2L)).thenReturn(Optional.of(proyecto));
+        java.util.Map<String, Long> byStatus = java.util.Map.of("TODO", 1L, "IN_PROGRESS", 2L, "DONE", 1L);
+        com.taskflow.dto.ProjectSummaryResponse resumen = new com.taskflow.dto.ProjectSummaryResponse(
+                2L, "App Móvil", 4L, byStatus, 1L);
+        when(projectService.resumen(any())).thenReturn(resumen);
+
+        mockMvc.perform(get("/projects/2/summary"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.projectId").value(2))
+                .andExpect(jsonPath("$.projectName").value("App Móvil"))
+                .andExpect(jsonPath("$.totalTasks").value(4))
+                .andExpect(jsonPath("$.byStatus.TODO").value(1))
+                .andExpect(jsonPath("$.byStatus.IN_PROGRESS").value(2))
+                .andExpect(jsonPath("$.byStatus.DONE").value(1))
+                .andExpect(jsonPath("$.overdue").value(1));
+    }
+
+    @Test
+    void getProjectSummary_inexistente_retorna404() throws Exception {
+        when(projectService.buscarPorId(99L)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/projects/99/summary"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404));
+    }
+
     private Task tarea(Long id, String title) {
         try {
             return new Task(id, title, "desc", TaskStatus.TODO, Priority.MED, 1L, 1L, null);
