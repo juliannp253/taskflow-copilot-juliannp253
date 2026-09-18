@@ -18,6 +18,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,5 +55,8 @@ class BusquedaTareasServiceTest {
     void buscarPorTitulo_nullOBlank_lanza() {
         assertThrows(TaskValidationException.class, () -> service.buscarPorTitulo(null));
         assertThrows(TaskValidationException.class, () -> service.buscarPorTitulo("   "));
+
+        // el servicio no debe delegar al repositorio cuando la entrada es inválida
+        verifyNoInteractions(taskRepository);
     }
 }

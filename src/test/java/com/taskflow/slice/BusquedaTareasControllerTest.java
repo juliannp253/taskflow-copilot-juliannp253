@@ -45,8 +45,7 @@ class BusquedaTareasControllerTest {
         TaskResponse r1 = new TaskResponse(9L, "Documentar la API con Swagger", "d", TaskStatus.TODO, null, 1L, null, LocalDate.now());
         TaskResponse r2 = new TaskResponse(5L, "Optimizar consultas de la API", "d", TaskStatus.TODO, null, 1L, null, LocalDate.now());
         when(taskService.buscarPorTitulo("api")).thenReturn(List.of(
-                // service devuelve entidades; controller mapea a TaskResponse — pero en slice we mock service to return DTOs? Skill says mock service to return DTOs.
-                // Here TaskService.buscarPorTitulo returns List<Task>, so return Tasks
+                // el servicio devuelve entidades; el controller las mapea a DTOs en la respuesta
                 new com.taskflow.model.Task(9L, "Documentar la API con Swagger", "d", TaskStatus.TODO, com.taskflow.model.Priority.MED, 1L, null, LocalDate.now()),
                 new com.taskflow.model.Task(5L, "Optimizar consultas de la API", "d", TaskStatus.TODO, com.taskflow.model.Priority.MED, 1L, null, LocalDate.now())
         ));
