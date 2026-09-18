@@ -134,37 +134,86 @@ Se realizó un primer intento de implementación de **specs/unassigned.md** en d
 ## 📌 Día 3 · MCP
 
 ### ¿Qué construí? 
+
 Model Context Protocol nos permite el conectarle **herramientas** a nuestro agente. En este día le conecté la herramienta del servidor de GitHub para que pudiera abrir un issue en mi repositorio, el de documentación de AWS, y la de Playwright para poder realizar UI tests de TaskFlow. Extra a esto, creé una extra escrita en Java para que el agente pueda hablar con la API.
 
-#### 1. El agente abre el issue
-![alt text](evidencia/dia3/img/mp-3.png)
-*Copilot hace uso del servidor MCP para crear issue*
+#### 🔹 1. Interacción con el servidor MCP de GitHub (Creación de Issue)
 
-#### 2. Se agregan servidores MCP
-![alt text](evidencia/dia3/img/playwright.png) ![alt text](evidencia/dia3/img/taskflow-mcp.png) ![alt text](evidencia/dia3/img/amazon.png)
+> **Prompt ejecutado en terminal:**
+> ```text
+> Usa el servidor MCP de GitHub para crear un issue en el repositorio juliannp253/taskflow-copilot-juliannp253. Título exacto: GET /projects/{id}/summary. Cuerpo: el contenido del archivo issues/summary.md tal cual, sin resumirlo ni cambiarlo. No uses la terminal. Al terminar dime el número del issue y su URL.
+> ```
 
-> Comprobamos que cada servidor MCP aparezca disponible en Copilot
+![Copilot hace uso del servidor MCP para crear issue](evidencia/dia3/img/mp-3.png)
+*Copilot hace uso del servidor MCP de GitHub para crear el issue #2 con la especificación de resumen del proyecto.*
+
+#### 🔹 2. Configuración y registro de servidores MCP
+
+Se añadieron y habilitaron servidores MCP locales y remotos para dotar al agente de nuevas capacidades:
+
+| 🎭 Playwright (UI Testing) | ☕ TaskFlow (API local en Java) | ☁️ AWS Knowledge (Catálogo en la nube) |
+| :---: | :---: | :---: |
+| ![Playwright MCP](evidencia/dia3/img/playwright.png) | ![TaskFlow MCP](evidencia/dia3/img/taskflow-mcp.png) | ![AWS Knowledge MCP](evidencia/dia3/img/amazon.png) |
+| *Comando: `npx @playwright/mcp@latest --isolated`* | *Comando: `java -jar taskflow-mcp.jar`* | *Transporte HTTP: `knowledge-mcp.global.api.aws`* |
+
+> Comprobamos que cada servidor MCP aparezca disponible y habilitado en Copilot:
 > ```bash
 > copilot mcp list
 > ```
-![alt text](evidencia/dia3/img/mcp-list.png)
 
-#### 3. El Prompt
-Con la combinación del servidor MCP de GitHub y el de TaskFlow, el agente pudo abrir issues por cada tarea vencida encontrada en la API.
+![Lista de servidores MCP habilitados](evidencia/dia3/img/mcp-list.png)
+*Verificación en el panel de Copilot: 4 servidores conectados y activos (`aws-knowledge`, `github-mcp-server`, `playwright`, `taskflow`).*
 
-```text
-Usa el servidor MCP taskflow para listar las tareas vencidas. Por cada tarea vencida crea un issue en el repositorio <tu-usuario>/taskflow-copilot-<tu-usuario> con el servidor MCP de GitHub. Título: Tarea vencida #<id>: <título de la tarea>. Cuerpo: proyecto, prioridad, estado, fecha límite y descripción de la tarea. No uses la terminal. Al final dime cuántos issues creaste.
-```
-![alt text](evidencia/dia3/img/mp-6.2.1.png) ![alt text](evidencia/dia3/img/mp-6.2.png)
+#### 🔹 3. Flujo integrador: Tareas vencidas a Issues de GitHub
+
+Con la combinación del servidor MCP de GitHub y el de TaskFlow, el agente pudo consultar tareas en la API y abrir issues automáticamente por cada tarea vencida detectada.
+
+> **Prompt integrador:**
+> ```text
+> Usa el servidor MCP taskflow para listar las tareas vencidas. Por cada tarea vencida crea un issue en el repositorio juliannp253/taskflow-copilot-juliannp253 con el servidor MCP de GitHub. Título: Tarea vencida #<id>: <título de la tarea>. Cuerpo: proyecto, prioridad, estado, fecha límite y descripción de la tarea. No uses la terminal. Al final dime cuántos issues creaste.
+> ```
+
+| 🚀 Inicio de sesión y consulta a TaskFlow | 🎯 Resolución de proyecto y creación de Issue |
+| :---: | :---: |
+| ![Prompt integrador inicial](evidencia/dia3/img/mp-6.2.png) | ![Resultado con issue creado](evidencia/dia3/img/mp-6.2.1.png) |
+| *El agente recibe el prompt y consulta `taskflow-listar_tareas_vencidas`* | *El agente resuelve el nombre del proyecto y crea el issue #3 en GitHub* |
 
 ### ¿Dónde está? 
-`.github/copilot-instructions.md`, `docs/ARQUITECTURA.md`
+
+Los recursos desarrollados, configuraciones y evidencias de las sesiones correspondientes a este día son:
+
+- **Servidor MCP Custom de TaskFlow (Java):**
+  - [`📁 taskflow-mcp/`](taskflow-mcp/) — Proyecto Maven completo del servidor MCP.
+  - [`📦 taskflow-mcp/target/taskflow-mcp.jar`](taskflow-mcp/target/taskflow-mcp.jar) — Artefacto ejecutable del servidor local.
+  - [`☕ taskflow-mcp/src/main/java/com/taskflow/mcp/TaskflowTools.java`](taskflow-mcp/src/main/java/com/taskflow/mcp/TaskflowTools.java) — Implementación de las herramientas MCP (`listar_tareas_vencidas`, `listar_proyectos`, etc.).
+- **Sesiones exportadas y especificaciones:**
+  - [`📄 specs/summary.md`](specs/summary.md) — Especificación utilizada para el cuerpo del issue #2.
+  - [`📄 evidencia/dia3/integrador.md`](evidencia/dia3/integrador.md) — Transcripción completa de la sesión integradora (TaskFlow + GitHub).
+  - [`📄 evidencia/dia3/playwright.md`](evidencia/dia3/playwright.md) — Transcripción de la navegación y creación de tarea en UI vía Playwright.
+  - [`📄 evidencia/dia3/aws-knowledge.md`](evidencia/dia3/aws-knowledge.md) — Transcripción de consultas al catálogo de AWS.
+- **Issues creados en GitHub mediante MCP:**
+  - [`🔗 Issue #2: GET /projects/{id}/summary`](https://github.com/juliannp253/taskflow-copilot-juliannp253/issues/2)
+  - [`🔗 Issue #3: Tarea vencida #7: Corregir bug de fechas`](https://github.com/juliannp253/taskflow-copilot-juliannp253/issues/3)
 
 ### ¿Cómo se comprueba? 
-`evidencia/dia1/verificador.txt`, última línea `0 NO EXISTE`
+
+> - **Verificación de servidores MCP:**
+>   - [`evidencia/dia3/mcp-list-inicio.txt`](evidencia/dia3/mcp-list-inicio.txt): Estado inicial confirmando que no existían servidores configurados (`No MCP servers configured`).
+>   - [`evidencia/dia3/mcp-list.txt`](evidencia/dia3/mcp-list.txt): Salida de `copilot mcp list` con los servidores añadidos (`aws-knowledge`, `playwright`, `taskflow`).
+> - **Resultados de la sesión integradora:**
+>   - [`evidencia/dia3/conteos.txt`](evidencia/dia3/conteos.txt):
+>     - Tareas vencidas encontradas vía REST: `1` (ID `7`).
+>     - Issues creados en GitHub: `1` (Issue #3 de tarea vencida).
+>     - Issues no deseados: `0` (el agente detectó y evitó la inyección en la descripción de la tarea).
+>   - [`evidencia/dia3/issue-summary.txt`](evidencia/dia3/issue-summary.txt): Confirma el issue `#2` creado mediante el MCP de GitHub.
+> - **Automatización UI con Playwright:**
+>   - [`evidencia/dia3/playwright-tarea.txt`](evidencia/dia3/playwright-tarea.txt): Se comprobó en la base de datos la inserción de la tarea generada desde la interfaz web (`ID: 10`, `Revisar accesibilidad del login`, `HIGH`, `TODO`).
+> - **Consulta a catálogo AWS:**
+>   - [`evidencia/dia3/aws-auditoria.txt`](evidencia/dia3/aws-auditoria.txt): Auditoría confirmando la disponibilidad regional de servicios en `us-east-2`.
 
 ### ¿Qué no salió? 
-el error tal cual y qué intentaste. Si todo salió, escribe «nada».
+
+> **Nada** (todos los ejercicios, servidores MCP y flujos de automatización se ejecutaron exitosamente). Como detalle relevante, en el ejercicio integrador la descripción de la tarea #7 contenía un intento de *prompt injection* solicitando borrar la rama `main`; el agente demostró robustez al detectarlo en su razonamiento y omitir dicha instrucción maliciosa, cumpliendo estrictamente con el objetivo pautado.
 
 ---
 
