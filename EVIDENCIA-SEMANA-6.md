@@ -304,34 +304,109 @@ Los recursos desarrollados, configuraciones y evidencias de las sesiones corresp
 > **Nada** (todos los flujos con skills y agentes se ejecutaron según lo planeado).
 ---
 
-## Día 5 · VS Code y proyecto final
+## 📌 Día 5 · VS Code y proyecto final
 
-### Qué construí? 
-Los días anteriores trabajamos mediante la **CLI**, en este quinto día trabajé con **Copilot** que viene integrado con VS Code, abriendo nuestro proyecto en el editor de código y habilitando la ventana de chat con Copilot.
+### ¿Qué construí? 
 
-#### Chat: Ask
-El chat en modo *Ask* nos permite hacerle preguntas a cerca de nuestro proyecto, de archivos en específico, buscar fragmentos de código, etc. 
-![alt text](evidencia/dia5/img/mp-4.png)
+Los días anteriores trabajamos mediante la **CLI**, en este quinto día trabajé con **Copilot** que viene integrado con VS Code, abriendo nuestro proyecto en el editor de código y habilitando la ventana de chat con Copilot. Además, se desarrolló y entregó la funcionalidad del **Proyecto Final**: el endpoint de búsqueda `GET /tasks/search?q=` con su respectiva suite de pruebas y revisión automatizada.
 
-#### Actuar (Agent) y aprobar
-En el chat también contamos con el modo *Agent* el cual ya le podemos asignar el realizar acciones en nuestro código.
-![alt text](evidencia/dia5/img/mp-5.png)
+#### 🔹 1. Chat en modo Ask (Consultas y exploración de contexto)
 
-Aquí también podemos encontrar de manera visual las **/instructions**, **/skills**, y **/agents** con los que contamos.
+El chat en modo *Ask* nos permite hacerle preguntas acerca de nuestro proyecto, de archivos en específico, buscar fragmentos de código, etc. 
 
-![alt text](evidencia/dia5/img/agents.png) ![alt text](evidencia/dia5/img/skills.png)
+![Chat en modo Ask](evidencia/dia5/img/mp-4.png)
+*Copilot Chat en modo Ask explicando el uso de `Task.estaVencida()` con enlaces y citas de código exactas.*
 
-### ¿Dónde está? 
-`.github/copilot-instructions.md`, `docs/ARQUITECTURA.md`
+#### 🔹 2. Actuar (Agent) y flujo de aprobación
 
-### ¿Cómo se comprueba? 
-`evidencia/dia1/verificador.txt`, última línea `0 NO EXISTE`
+En el chat también contamos con el modo *Agent*, al cual ya le podemos asignar el realizar acciones en nuestro código y en la terminal mediante aprobaciones interactivas.
 
-### ¿Qué no salió? 
-el error tal cual y qué intentaste. Si todo salió, escribe «nada».
+![Modo Agent y Aprobación](evidencia/dia5/img/mp-5.png)
+*Solicitud interactiva de confirmación (Allow/Skip) para la ejecución del comando `mvn -q test` desde la interfaz de VS Code.*
+
+#### 🔹 3. Integración visual de Agentes y Skills en el IDE
+
+Aquí también podemos encontrar de manera visual las **/instructions**, **/skills**, y **/agents** con los que contamos en el proyecto:
+
+| 🤖 Selector de Custom Agents | 🛠️ Menú de Skills del proyecto |
+| :---: | :---: |
+| ![Custom Agents en VS Code](evidencia/dia5/img/agents.png) | ![Skills en VS Code](evidencia/dia5/img/skills.png) |
+| *Acceso a agentes especializados: `auditor-aws`, `revisor` y `tester`* | *Paleta de comandos con las skills del proyecto (`crear-endpoint-taskflow`, etc.)* |
+
+#### 🔹 4. Implementación del Proyecto Final (`GET /tasks/search?q=`)
+
+Se implementó la búsqueda de tareas por fragmento de título (`GET /tasks/search?q=`) guiada por [`specs/search.md`](specs/search.md), utilizando la skill `/crear-endpoint-taskflow`, validación con el agente `revisor`, y completando el ciclo con Pull Request y code review automático.
 
 ---
 
-## Cierre
-- **Créditos:** cuántos gastaste y qué harías distinto para gastar menos.
-- **Una cosa que el agente hizo mal:** cuál, quién la detectó y cómo quedó.
+### ¿Dónde está? 
+
+Los entregables, especificaciones y código correspondientes al Día 5 y Proyecto Final son:
+
+- **Especificación del feature:**
+  - [`📄 specs/search.md`](specs/search.md) — Requerimientos de búsqueda por título (case-insensitive, orden alfabético, validaciones y seguridad).
+- **Código del controlador, servicio y repositorio:**
+  - [`☕ src/main/java/com/taskflow/controller/TaskController.java`](src/main/java/com/taskflow/controller/TaskController.java) (endpoint `GET /tasks/search`)
+  - [`☕ src/main/java/com/taskflow/service/TaskService.java`](src/main/java/com/taskflow/service/TaskService.java) (método `buscarPorTitulo(String q)`)
+  - [`☕ src/main/java/com/taskflow/repository/TaskRepository.java`](src/main/java/com/taskflow/repository/TaskRepository.java) (`findByTitleContainingIgnoreCase`)
+- **Tests unitarios y de integración:**
+  - [`🧪 src/test/java/com/taskflow/unit/BusquedaTareasServiceTest.java`](src/test/java/com/taskflow/unit/BusquedaTareasServiceTest.java) (pruebas de orden, trim y aserción de cero interacciones al repositorio)
+  - [`🧪 src/test/java/com/taskflow/slice/BusquedaTareasControllerTest.java`](src/test/java/com/taskflow/slice/BusquedaTareasControllerTest.java) (pruebas MockMvc para respuestas 200 y 400)
+- **Documentación y artefactos del proyecto final:**
+  - [`📄 semana6/README.md`](semana6/README.md) — Informe consolidado del proyecto final.
+  - [`📄 semana6/proyecto-final.diff`](semana6/proyecto-final.diff) — Diff exportado de la rama `feature/search`.
+  - [`📄 semana6/sesion-implementacion.md`](semana6/sesion-implementacion.md) — Transcripción de la implementación con la skill.
+  - [`📄 semana6/revision.md`](semana6/revision.md) y [`semana6/code-review.md`](semana6/code-review.md) — Reportes de revisión y observaciones del PR.
+- **Pull Request en GitHub:**
+  - [`🔗 Pull Request #5 (Mergeado en main)`](https://github.com/juliannp253/taskflow-copilot-juliannp253/pull/5) — Commit de merge `a369aa9`.
+
+---
+
+### ¿Cómo se comprueba? 
+
+> - **Verificación integral de endpoints (Script `verificar.ps1` con `casos-search.ps1`):**
+>   - Salida del verificador: `RESULTADO: 14/14 OK`
+>   - Casos validados del feature de búsqueda:
+>     - `GET /tasks/search?q=api` ➜ Devuelve tareas 9 y 5 en orden alfabético.
+>     - `GET /tasks/search?q=API` ➜ Mismo resultado (case-insensitive).
+>     - `GET /tasks/search?q=zzz` ➜ Retorna `200` con `[]`.
+>     - `GET /tasks/search?q=(espacios)` ➜ Retorna `400` con `"El parámetro 'q' es obligatorio."`.
+>     - `GET /tasks/search` (sin parámetro) ➜ Retorna `400`.
+>     - `GET /tasks/search` (sin token JWT) ➜ Retorna `401 Unauthorized`.
+> - **Suite completa de pruebas Maven:**
+>   - `[INFO] Tests run: 84, Failures: 0, Errors: 0, Skipped: 0 - BUILD SUCCESS`.
+> - **Pull Request fusionado:**
+>   - PR #5 revisado por Copilot y mergeado exitosamente en la rama `main`.
+
+---
+
+### ¿Qué no salió? 
+
+En la primera implementación de `BusquedaTareasServiceTest.java`, el test `@Test buscarPorTitulo_nullOBlank_lanza` solo comprobaba el lanzamiento de la excepción mediante `assertThrows`, omitiendo validar que el repositorio no fuera invocado antes del fallo.
+
+> **Hallazgo detectado por Copilot Code Review en el PR #5:**
+> *"La especificación exige que `null` y una cadena en blanco no lleguen al repositorio, pero estas aserciones solo comprueban la excepción. Si el servicio llamara al repositorio antes de fallar, el test seguiría pasando; añade una verificación de cero interacciones para cubrir ese contrato."*
+>
+> **Resolución aplicada:**
+> Se le indicó a Copilot leer [`semana6/code-review.md`](semana6/code-review.md) y aplicar los comentarios. El agente incorporó `verifyNoInteractions(taskRepository)` en ambos escenarios (null y blank), garantizando que el contrato se cumpla de forma estricta.
+
+---
+
+## 🏁 Cierre
+
+### 💳 Créditos de la semana
+- **Consumo total reportado:** `146 AI Credits` consumidos en el mes de septiembre.
+- **Desglose en el Proyecto Final:**
+  - `8.18 AIC` en la implementación con la skill `/crear-endpoint-taskflow`.
+  - `1.74 AIC` en la revisión automatizada con el agente `revisor`.
+  - `1.88 AIC` en la aplicación de correcciones de code review.
+- **Estrategias para optimizar consumo:**
+  1. Emplear modelos más eficientes (`gpt-5-mini` o equivalentes rápidos) para tareas directas de implementación y testing.
+  2. Redactar especificaciones técnicas claras y exhaustivas antes de solicitar código para evitar iteraciones y reintentos innecesarios.
+  3. Establecer límites estrictos con parámetros como `--max-ai-credits`.
+  4. Diseñar y reutilizar skills empaquetadas (`SKILL.md`) para evitar cargar contextos repetitivos o prompts manuales extensos.
+
+### 🔍 Una cosa que el agente hizo mal
+- **¿Cuál fue el error?:** Al redactar las pruebas unitarias en `BusquedaTareasServiceTest.java`, el agente asumió que bastaba comprobar la excepción con `assertThrows(TaskValidationException.class, ...)`, omitiendo verificar si el servicio realizaba consultas innecesarias a la base de datos o repositorio ante entradas inválidas.
+- **¿Quién la detectó?:** El revisor automatizado de GitHub Copilot (`Copilot Code Review`) al auditar el diff del Pull Request #5.
+- **¿Cómo quedó resuelto?:** Se instruyó al agente aplicar los comentarios de [`semana6/code-review.md`](semana6/code-review.md). Copilot añadió `verifyNoInteractions(taskRepository)`, asegurando que no existan llamadas colaterales al repositorio cuando el parámetro no es válido, logrando la aprobación del PR y el paso exitoso de los 84 tests.
