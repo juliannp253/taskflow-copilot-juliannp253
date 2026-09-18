@@ -217,27 +217,116 @@ Los recursos desarrollados, configuraciones y evidencias de las sesiones corresp
 
 ---
 
-## Día 4 · Skills y agentes
+## 📌 Día 4 · Skills y agentes
 
 ### ¿Qué construí? 
-una frase, con tus palabras.
-### ¿Dónde está? 
-`.github/copilot-instructions.md`, `docs/ARQUITECTURA.md`
-### ¿Cómo se comprueba? 
-`evidencia/dia1/verificador.txt`, última línea `0 NO EXISTE`
-### ¿Qué no salió? 
-el error tal cual y qué intentaste. Si todo salió, escribe «nada».
 
+En este día se incorporaron las **skills** para el agente. Contamos con la skill dentro de [`.github/skills/crear-endpoint-taskflow/SKILL.md`](.github/skills/crear-endpoint-taskflow/SKILL.md) que nos da la receta para crear un endpoint; otra skill [`.github/skills/verificar-taskflow/SKILL.md`](.github/skills/verificar-taskflow/SKILL.md) para ejecutar script que inicia la app y la prueba. Junto a las skills, introducimos **agentes** que pueden ser utilizados para designarles tareas acorde su función. Contamos con [`.github/agents/revisor.agent.md`](.github/agents/revisor.agent.md) y [`.github/agents/tester.agent.md`](.github/agents/tester.agent.md), cada uno cuenta con sus distintos permisos.
+
+#### 🔹 1. Registro y listado de Skills del proyecto
+
+Comprobación de las skills personalizadas y disponibles en Copilot CLI mediante `copilot skill list`:
+
+![Skills disponibles](evidencia/dia4/img/mp-1.png)
+*Skills registradas: `crear-endpoint-taskflow` y `verificar-taskflow`.*
+
+#### 🔹 2. Verificación automatizada con `/verificar-taskflow`
+
+> **Prompt ejecutado en terminal:**
+> ```text
+> /verificar-taskflow Verifica TaskFlow con el script de la skill y dame el resultado.
+> ```
+
+![Ejecución de verificar-taskflow](evidencia/dia4/img/mp-6.png)
+*La skill empaqueta la app con Maven, la arranca en segundo plano con perfil H2, ejecuta pruebas end-to-end contra los endpoints y apaga el servicio.*
+
+#### 🔹 3. Catálogo y verificación de Custom Agents
+
+Verificación y selección de agentes especializados configurados en el proyecto:
+
+![Selector de Custom Agents](evidencia/dia4/img/mp-7.png)
+*Agentes disponibles: `Default`, `revisor` (project) y `tester` (project).*
+
+#### 🔹 4. Especialización en acción: Revisor y Tester
+
+| 🕵️‍♂️ Agente Revisor (Code Review) | 🧪 Agente Tester (Cobertura de Tests) |
+| :---: | :---: |
+| ![Agente Revisor](evidencia/dia4/img/mp-8.png) | ![Agente Tester](evidencia/dia4/img/mp-10.png) |
+| *El `revisor` analiza `summary.diff` vs `specs/summary.md` reportando faltantes* | *El `tester` añade los tests unitarios y slice faltantes y pasa `mvn -q test`* |
+
+#### 🔹 5. Auditor de cuenta AWS en modo seguro
+
+Contamos con un agente más, [`auditor-aws.agent.md`](.github/agents/auditor-aws.agent.md), el cual hace uso del MCP server de AWS que configuramos el día previo para acceder a la documentación de AWS, y con esa información realizar una auditoría de la cuenta y verificar si existe algún servicio vivo. Este agente realiza todas las acciones de manera segura, no puede crear ni borrar sin que se lo pidan.
+
+| 🛡️ Inicio de Auditoría AWS | 📊 Inspección de Servicios y Recursos |
+| :---: | :---: |
+| ![Prompt Auditor AWS](evidencia/dia4/img/mp-13.png) | ![Resultado Auditoría](evidencia/dia4/img/mp-13.1.png) |
+| *Llamada a la skill `limpieza-aws` con script en servidor de solo lectura `aws-ro`* | *Listado de instancias EC2, S3, DynamoDB y roles IAM en regiones `us-east-1` y `us-east-2`* |
+
+> **Veredicto final de la cuenta:** `CUENTA LIMPIA`
+> ![Veredicto Cuenta Limpia](evidencia/dia4/img/mp-13.2.png)
+> *Comprobación en terminal validando la salida `Veredicto: CUENTA LIMPIA`.*
+
+### ¿Dónde está? 
+
+Los recursos desarrollados, configuraciones y evidencias de las sesiones correspondientes a este día son:
+
+- **Skills personalizadas (.github/skills/):**
+  - [`📁 .github/skills/crear-endpoint-taskflow/SKILL.md`](.github/skills/crear-endpoint-taskflow/SKILL.md) — Receta estructurada para implementar endpoints con sus capas y convenciones.
+  - [`📁 .github/skills/verificar-taskflow/SKILL.md`](.github/skills/verificar-taskflow/SKILL.md) y [`verificar.ps1`](.github/skills/verificar-taskflow/verificar.ps1) — Script de verificación integral de endpoints.
+  - [`📁 .github/skills/limpieza-aws/SKILL.md`](.github/skills/limpieza-aws/SKILL.md) y [`auditoria.py`](.github/skills/limpieza-aws/auditoria.py) — Script para auditoría de infraestructura en la nube.
+- **Custom Agents (.github/agents/):**
+  - [`🤖 .github/agents/revisor.agent.md`](.github/agents/revisor.agent.md) — Agente de revisión de código con permisos de solo lectura.
+  - [`🤖 .github/agents/tester.agent.md`](.github/agents/tester.agent.md) — Agente especializado en generar y correr tests.
+  - [`🤖 .github/agents/auditor-aws.agent.md`](.github/agents/auditor-aws.agent.md) — Agente de inspección de cuenta AWS en modo seguro.
+- **Código y Tests creados/afectados:**
+  - [`☕ src/main/java/com/taskflow/controller/ProjectController.java`](src/main/java/com/taskflow/controller/ProjectController.java) y [`ProjectService.java`](src/main/java/com/taskflow/service/ProjectService.java) (`GET /projects/{id}/summary`)
+  - [`🧪 src/test/java/com/taskflow/unit/ProjectServiceTest.java`](src/test/java/com/taskflow/unit/ProjectServiceTest.java) y [`ProjectControllerTest.java`](src/test/java/com/taskflow/slice/ProjectControllerTest.java) (tests implementados por el agente `tester`)
+- **Sesiones exportadas:**
+  - [`📄 evidencia/dia4/summary-sesion.md`](evidencia/dia4/summary-sesion.md) — Implementación inicial con `/crear-endpoint-taskflow`.
+  - [`📄 evidencia/dia4/verificar-sesion.md`](evidencia/dia4/verificar-sesion.md) — Ejecución de la skill `/verificar-taskflow`.
+  - [`📄 evidencia/dia4/revision.md`](evidencia/dia4/revision.md) y [`revisor-no-edita.md`](evidencia/dia4/revisor-no-edita.md) — Sesiones del agente `revisor`.
+  - [`📄 evidencia/dia4/tester-sesion.md`](evidencia/dia4/tester-sesion.md) — Sesión del agente `tester`.
+
+### ¿Cómo se comprueba? 
+
+> - **Verificación end-to-end con `/verificar-taskflow`:**
+>   - [`evidencia/dia4/verificar.txt`](evidencia/dia4/verificar.txt): Resultado `8/8 OK` validando los endpoints `/tasks/overdue`, `/tasks/unassigned`, `/projects/{id}/summary` (IDs 1, 2 y 3), respuesta 404 para ID inexistente y 401 sin token.
+> - **Verificación de permisos de solo lectura del revisor:**
+>   - [`evidencia/dia4/revisor-no-edita.md`](evidencia/dia4/revisor-no-edita.md): Ante la orden explícita de modificar archivos, el agente respondió: *"No puedo escribir archivos directamente desde esta interfaz"*, confirmando que sus permisos están restringidos correctamente.
+> - **Completitud y ejecución de pruebas por el tester:**
+>   - [`evidencia/dia4/tester-sesion.md`](evidencia/dia4/tester-sesion.md): Implementación exitosa de los casos de prueba unitarios y slice para `summary` y suite terminando en verde (`mvn -q test`).
+> - **Auditoría de seguridad AWS:**
+>   - [`evidencia/dia4/aws-resultado.txt`](evidencia/dia4/aws-resultado.txt): Certificación de estado de cuenta sin recursos huérfanos (`Veredicto: CUENTA LIMPIA.`).
+
+### ¿Qué no salió? 
+
+> **Nada** (todos los flujos con skills y agentes se ejecutaron según lo planeado).
 ---
 
 ## Día 5 · VS Code y proyecto final
 
 ### Qué construí? 
-una frase, con tus palabras.
+Los días anteriores trabajamos mediante la **CLI**, en este quinto día trabajé con **Copilot** que viene integrado con VS Code, abriendo nuestro proyecto en el editor de código y habilitando la ventana de chat con Copilot.
+
+#### Chat: Ask
+El chat en modo *Ask* nos permite hacerle preguntas a cerca de nuestro proyecto, de archivos en específico, buscar fragmentos de código, etc. 
+![alt text](evidencia/dia5/img/mp-4.png)
+
+#### Actuar (Agent) y aprobar
+En el chat también contamos con el modo *Agent* el cual ya le podemos asignar el realizar acciones en nuestro código.
+![alt text](evidencia/dia5/img/mp-5.png)
+
+Aquí también podemos encontrar de manera visual las **/instructions**, **/skills**, y **/agents** con los que contamos.
+
+![alt text](evidencia/dia5/img/agents.png) ![alt text](evidencia/dia5/img/skills.png)
+
 ### ¿Dónde está? 
 `.github/copilot-instructions.md`, `docs/ARQUITECTURA.md`
+
 ### ¿Cómo se comprueba? 
 `evidencia/dia1/verificador.txt`, última línea `0 NO EXISTE`
+
 ### ¿Qué no salió? 
 el error tal cual y qué intentaste. Si todo salió, escribe «nada».
 
